@@ -74,7 +74,10 @@ let handleGetProductDetail = async (req, res) => {
 
 let handleGetAllProduct = async (req, res) => {
   try {
-    let message = await productService.getAllProductService(req.body);
+    let limit = req.query.limit;
+    let page = req.query.page;
+    let sort = req.query.sort;
+    let message = await productService.getAllProductService(limit, page, sort);
     if (message.errCode === 0) {
       return res.status(200).json(message);
     } else {

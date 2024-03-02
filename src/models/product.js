@@ -1,33 +1,16 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, unique: true },
-    images: [
-      {
-        link: { type: String, required: true },
-      },
-    ],
-    productTypeId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "ProductType",
-      required: true,
-    },
+    images: [{ link: { type: String, require: true } }],
+    type: { type: String, required: true },
     price: { type: Number, required: true },
-    productSizes: [
-      {
-        sizeId: {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Size",
-          unique: true,
-        },
-        countInStock: { type: Number, required: true },
-      },
-    ],
-    selled: { type: Number, default: 0 },
-    rating: { type: Number, default: 0 },
-    description: { type: String },
+    countInStock: { type: Number, required: true },
+    rating: { type: Number },
+    description: { type: String, require: true },
     discount: { type: Number, default: 0 },
+    selled: { type: Number, default: 0 },
   },
   {
     timestamps: true,

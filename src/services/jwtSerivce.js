@@ -4,10 +4,10 @@ require("dotenv").config();
 export const generalAccessToken = (payload) => {
   const accessToken = jwt.sign(
     {
-      payload,
+      ...payload,
     },
     process.env.ACCESS_KEY,
-    { expiresIn: "30s" }
+    { expiresIn: "60s" }
   );
 
   return accessToken;
@@ -16,7 +16,7 @@ export const generalAccessToken = (payload) => {
 export const generalRefreshToken = (payload) => {
   const refreshToken = jwt.sign(
     {
-      payload,
+      ...payload,
     },
     process.env.REFRESH_KEY,
     { expiresIn: "1d" }
@@ -41,14 +41,14 @@ export const refreshTokenService = (token) => {
               message: "User access denied",
             });
           }
-          if (user?.payload) {
+          if (user?.id && user?.isAdmin) {
             const accessToken = await generalAccessToken({
-              id: user?.payload?.id,
-              isAdmin: user?.payload?.isAdmin,
+              id: user?.id,
+              isAdmin: user?.isAdmin,
             });
             resolve({
               errCode: 0,
-              data: accessToken,
+              access_token: accessToken,
               message: "Refresh token succeed",
             });
           }

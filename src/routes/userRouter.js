@@ -11,7 +11,7 @@ router.get("/check-user-exist", userController.handleCheckUserExist);
 router.post("/login", userController.handleLogin);
 router.put("/update-user", userController.handleUpdateUser);
 router.delete("/delete-user", authMiddleware, userController.handleDeleteUser);
-router.get("/get-all-user", authMiddleware, userController.handleGetAllUser);
+router.get("/get-all-user", userController.handleGetAllUser);
 router.get(
   "/get-detail-user",
   authUserMiddleware,

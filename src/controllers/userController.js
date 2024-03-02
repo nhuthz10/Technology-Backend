@@ -1,5 +1,6 @@
 import userService from "../services/userService";
 import { refreshTokenService } from "../services/jwtSerivce";
+import { response } from "express";
 
 let handleCreateNewUser = async (req, res) => {
   try {
@@ -39,7 +40,15 @@ let handleLogin = async (req, res) => {
   try {
     let message = await userService.loginService(req.body);
     if (message.errCode === 0) {
-      return res.status(200).json(message);
+      const { refresh_token, ...response } = message;
+      res.cookie("refresh_token", refresh_token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        path: "/",
+      });
+      res.cookie("cookieName", "cookieValue");
+      return res.status(200).json(response);
     } else {
       return res.status(400).json(message);
     }
@@ -88,7 +97,9 @@ let handleDeleteUser = async (req, res) => {
 
 let handleGetAllUser = async (req, res) => {
   try {
-    let message = await userService.getAllUserService();
+    let limit = req.query.limit;
+    let page = req.query.page;
+    let message = await userService.getAllUserService(limit, page);
     if (message.errCode === 0) {
       return res.status(200).json(message);
     } else {
@@ -122,7 +133,7 @@ let handleGetDetailUser = async (req, res) => {
 
 let handleRefreshToken = async (req, res) => {
   try {
-    let message = await refreshTokenService(req.headers.token);
+    let message = await refreshTokenService(req.cookies.refresh_token);
     if (message.errCode === 0) {
       return res.status(200).json(message);
     } else {

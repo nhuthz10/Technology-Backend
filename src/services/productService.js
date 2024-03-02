@@ -1,4 +1,5 @@
 import Product from "../models/product";
+require("dotenv").config();
 
 let checkProductNameUpdate = (productName, productId) => {
   return new Promise(async (resolve, reject) => {
@@ -38,32 +39,14 @@ let checkProductName = (productName) => {
   });
 };
 
-let checkSizeId = (productId, sizeId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      let product = await Product.findOne({
-        _id: productId,
-      });
-      let size = product.productSizes.find((size) => size.sizeId === sizeId);
-      if (size) {
-        resolve(true);
-      } else {
-        resolve(false);
-      }
-    } catch (error) {
-      reject(error);
-    }
-  });
-};
-
 const createProductService = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (
         !data.name ||
         !data.images?.length > 0 ||
-        !data.productSizes?.length > 0 ||
-        !data.productTypeId ||
+        !data.type ||
+        !data.countInStock ||
         !data.price ||
         !data.description
       ) {
@@ -82,9 +65,9 @@ const createProductService = (data) => {
           await Product.create({
             name: data.name,
             images: data.images,
-            productTypeId: data.productTypeId,
+            type: data.type,
             price: data.price,
-            productSizes: data.productSizes,
+            countInStock: data.countInStock,
             description: data.description,
           });
           resolve({
@@ -117,48 +100,15 @@ const updateUserService = (data) => {
             message: "User isn't found",
           });
         } else {
-          let checkSizeExist;
-          for (let i = 0; i < data.productSizes.length; i++) {
-            checkSizeExist = await checkSizeId(
-              data.productId,
-              data.productSizes[i]
-            );
-            console.log(checkSizeExist);
-            if (checkSizeExist) {
-              break;
-            }
-          }
-          if (checkSizeExist) {
+          let checkProductExist = await checkProductNameUpdate(
+            data.name,
+            data.productId
+          );
+          if (checkProductExist) {
             resolve({
-              errCode: 4,
-              message: "Size already exists",
+              errCode: 3,
+              message: "Productname already exists",
             });
-          }
-
-          if (data?.name) {
-            let checkProductExist = await checkProductNameUpdate(
-              data.name,
-              data.productId
-            );
-            if (checkProductExist) {
-              resolve({
-                errCode: 3,
-                message: "Productname already exists",
-              });
-            } else {
-              const updateProduct = await Product.findByIdAndUpdate(
-                data.productId,
-                data,
-                {
-                  new: true,
-                }
-              );
-              resolve({
-                errCode: 0,
-                message: "Update product succeed",
-                data: updateProduct,
-              });
-            }
           } else {
             const updateProduct = await Product.findByIdAndUpdate(
               data.productId,
@@ -212,12 +162,38 @@ const deleteProductService = (productId) => {
   });
 };
 
-const getAllProductService = () => {
+const getAllProductService = (limit, page, sort, filter) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const products = await Product.find();
+      if (!limit) limit = +process.env.LIMIT;
+      if (!page) page = 1;
+      let skip = (page - 1) * limit;
+      const totalProdcut = await Product.countDocuments();
+      let products;
+      if (sort && !filter) {
+        let formatSort = {};
+        formatSort[sort[0]] = sort[1];
+        products = await Product.find()
+          .limit(limit)
+          .skip(skip)
+          .sort(formatSort);
+      } else if (filter && !sort) {
+        let filter = {};
+        products = await Product.find({
+          name: { $regex: "product" },
+          price: { $regex: 90000 },
+        })
+          .limit(limit)
+          .skip(skip);
+      } else if (sort && filter) {
+      } else {
+        products = await Product.find().limit(limit).skip(skip);
+      }
       resolve({
         errCode: 0,
+        total: totalProdcut,
+        currentPage: page,
+        totalPage: Math.ceil(totalProdcut / limit),
         data: products,
         message: "Get all product succeed",
       });

@@ -3,6 +3,7 @@ import User from "../models/user";
 import bcrypt from "bcryptjs";
 import { generalAccessToken, generalRefreshToken } from "./jwtSerivce";
 const salt = bcrypt.genSaltSync(10);
+require("dotenv").config();
 
 let hashUserPassword = (password) => {
   return new Promise(async (resolve, reject) => {
@@ -226,12 +227,19 @@ const deleteUserService = (userId) => {
   });
 };
 
-const getAllUserService = () => {
+const getAllUserService = (limit, page) => {
   return new Promise(async (resolve, reject) => {
     try {
-      const users = await User.find();
+      if (!limit) limit = process.env.LIMIT;
+      if (!page) page = 1;
+      let skip = (page - 1) * limit;
+      const totalUser = await User.countDocuments();
+      const users = await User.find().limit(limit).skip(skip);
       resolve({
         errCode: 0,
+        total: totalUser,
+        currentPage: page,
+        totalPage: Math.ceil(totalUser / limit),
         data: users,
         message: "Get all user succeed",
       });
@@ -262,7 +270,11 @@ const getDetailUserService = (userId) => {
           resolve({
             errCode: 0,
             message: "Get user detail succeed",
-            data: user,
+            data: {
+              fullName: user.fullName,
+              isAdmin: user.isAdmin,
+              userName: user.userName,
+            },
           });
         }
       }

@@ -3,19 +3,20 @@ import bodyParser from "body-parser";
 import initWebRoutes from "./routes";
 import connectDB from "./config/connectDB";
 import cors from "cors";
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const app = express();
-
 app.use(
   cors({
     origin: process.env.URL_REACT,
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
   })
 );
-
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
+app.use(cookieParser());
 
 initWebRoutes(app);
 connectDB();

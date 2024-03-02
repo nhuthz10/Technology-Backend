@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const authMiddleware = (req, res, next) => {
-  const token = req.headers.token;
+  const token = req.headers.token.split(" ")[1];
   jwt.verify(token, process.env.ACCESS_KEY, function (err, user) {
     if (err) {
       return res.status(404).json({
@@ -10,8 +10,8 @@ const authMiddleware = (req, res, next) => {
         message: "User access denied",
       });
     }
-    let { payload } = user;
-    if (payload.isAdmin) {
+    let { isAdmin } = user;
+    if (isAdmin) {
       next();
     } else {
       return res.status(400).json({
@@ -23,7 +23,7 @@ const authMiddleware = (req, res, next) => {
 };
 
 const authUserMiddleware = (req, res, next) => {
-  const token = req.headers.token;
+  const token = req.headers.token.split(" ")[1];
   const userId = req.query.userId;
   jwt.verify(token, process.env.ACCESS_KEY, function (err, user) {
     if (err) {
@@ -32,8 +32,8 @@ const authUserMiddleware = (req, res, next) => {
         message: "User access denied",
       });
     }
-    let { payload } = user;
-    if (payload?.isAdmin || payload?.id === userId) {
+    let { isAdmin, id } = user;
+    if (isAdmin || id === userId) {
       next();
     } else {
       return res.status(400).json({
