@@ -47,8 +47,7 @@ let handleLogin = async (req, res) => {
         sameSite: "strict",
         path: "/",
       });
-      res.cookie("cookieName", "cookieValue");
-      return res.status(200).json(response);
+      return res.status(200).json(message);
     } else {
       return res.status(400).json(message);
     }
@@ -133,7 +132,8 @@ let handleGetDetailUser = async (req, res) => {
 
 let handleRefreshToken = async (req, res) => {
   try {
-    let message = await refreshTokenService(req.cookies.refresh_token);
+    let token = req.headers.token.split(" ")[1];
+    let message = await refreshTokenService(token);
     if (message.errCode === 0) {
       return res.status(200).json(message);
     } else {

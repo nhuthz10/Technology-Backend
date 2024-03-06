@@ -7,7 +7,7 @@ export const generalAccessToken = (payload) => {
       ...payload,
     },
     process.env.ACCESS_KEY,
-    { expiresIn: "60s" }
+    { expiresIn: "300s" }
   );
 
   return accessToken;
@@ -41,7 +41,7 @@ export const refreshTokenService = (token) => {
               message: "User access denied",
             });
           }
-          if (user?.id && user?.isAdmin) {
+          if (user) {
             const accessToken = await generalAccessToken({
               id: user?.id,
               isAdmin: user?.isAdmin,
